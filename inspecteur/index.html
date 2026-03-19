@@ -1,0 +1,339 @@
+<!-- Created: 19/03/2026 by yann kerhervé -->
+
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plans du Bateau</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:    #0a0f1e;
+      --deep:    #0d1530;
+      --panel:   #111c36;
+      --accent:  #00d4ff;
+      --accent2: #0088cc;
+      --gold:    #f0c040;
+      --text:    #c8daf0;
+      --muted:   #4a6080;
+      --btn-bg:  rgba(0, 212, 255, 0.18);
+      --btn-border: rgba(0, 212, 255, 0.7);
+      --btn-hover: rgba(0, 212, 255, 0.40);
+      --radius:  6px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--navy);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 28px;
+      background: var(--deep);
+      border-bottom: 1px solid rgba(0, 212, 255, 0.18);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      flex-shrink: 0;
+    }
+    .header-icon {
+      width: 36px; height: 36px;
+      fill: none; stroke: var(--accent); stroke-width: 1.5;
+    }
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    header h1 span { color: var(--accent); }
+    .header-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, rgba(0,212,255,.4), transparent);
+    }
+    .header-meta {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem;
+      color: var(--muted);
+      text-align: right;
+      line-height: 1.5;
+    }
+
+    /* ── MAIN ── */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 16px 40px;
+    }
+
+    /* ── CANVAS WRAPPER ── */
+    .plan-wrapper {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+      /* Keeps aspect ratio 1720:2000 */
+      aspect-ratio: 1720 / 2000;
+      width: min(860px, 100%);
+      border: 1px solid rgba(0,212,255,.2);
+      border-radius: 4px;
+      box-shadow: 0 0 40px rgba(0,100,200,.25), 0 0 0 1px rgba(0,212,255,.06);
+      overflow: visible;
+    }
+
+    .plan-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 4px;
+      /* If plan.png is missing, show a placeholder */
+      background: var(--panel);
+    }
+
+    /* ── HOTSPOT BUTTONS ── */
+    /*
+      Positions are in % relative to the 1720×2000 native image.
+      Use: left = x/1720*100%, top = y/2000*100%
+      The data-x and data-y attributes store the native px coords for reference.
+    */
+    .hotspot {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: clamp(22px, 3vw, 32px);
+      height: clamp(22px, 3vw, 32px);
+      border-radius: 50%;
+      background: var(--btn-bg);
+      border: 1.5px solid var(--btn-border);
+      backdrop-filter: blur(4px);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      z-index: 10;
+      color: var(--accent);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: clamp(9px, 1.2vw, 13px);
+      font-weight: 700;
+      outline: none;
+      /* Pulsing ring */
+      animation: pulse-ring 2.8s ease-in-out infinite;
+    }
+    .hotspot:hover, .hotspot:focus {
+      background: var(--btn-hover);
+      transform: translate(-50%, -50%) scale(1.18);
+      box-shadow: 0 0 14px rgba(0, 212, 255, .55);
+      animation: none;
+    }
+    @keyframes pulse-ring {
+      0%   { box-shadow: 0 0 0 0   rgba(0,212,255,.5); }
+      60%  { box-shadow: 0 0 0 6px rgba(0,212,255,0);  }
+      100% { box-shadow: 0 0 0 0   rgba(0,212,255,0);  }
+    }
+
+    /* Tooltip label */
+    .hotspot::after {
+      content: attr(data-label);
+      position: absolute;
+      bottom: calc(100% + 7px);
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      background: var(--panel);
+      border: 1px solid rgba(0,212,255,.35);
+      color: var(--accent);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(9px, 1.1vw, 12px);
+      font-weight: 600;
+      letter-spacing: .07em;
+      padding: 3px 8px;
+      border-radius: 3px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .18s;
+    }
+    .hotspot:hover::after, .hotspot:focus::after { opacity: 1; }
+
+    /* ── LIGHTBOX ── */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(5, 10, 25, .88);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+      animation: lb-in .22s ease;
+    }
+    #lightbox.open { display: flex; }
+    @keyframes lb-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .lb-card {
+      position: relative;
+      max-width: min(92vw, 960px);
+      max-height: 90dvh;
+      background: var(--panel);
+      border: 1px solid rgba(0, 212, 255, .28);
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(0,212,255,.06);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: card-in .25s cubic-bezier(.22,.8,.44,1) both;
+    }
+    @keyframes card-in {
+      from { transform: scale(.93) translateY(18px); opacity: 0; }
+      to   { transform: scale(1)   translateY(0);    opacity: 1; }
+    }
+
+    .lb-header {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(0,0,0,.25);
+      border-bottom: 1px solid rgba(0,212,255,.12);
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .lb-title {
+      flex: 1;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .lb-close {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.15);
+      color: var(--text);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      transition: background .15s, color .15s;
+      line-height: 1;
+    }
+    .lb-close:hover { background: rgba(255,80,80,.25); color: #fff; border-color: rgba(255,80,80,.5); }
+
+    .lb-body {
+      overflow: auto;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .lb-body img {
+      max-width: 100%;
+      max-height: 70dvh;
+      object-fit: contain;
+      border-radius: 4px;
+      display: block;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 12px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .68rem;
+      color: var(--muted);
+      border-top: 1px solid rgba(0,212,255,.08);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+ <img src="ensminversé.png" height="30">
+  <h1>Plans du <span>Porte-Conteneur</span> fictif</h1>
+  <div class="header-line"></div>
+  <div class="header-meta">
+    Sécurité - PSC - M1D - YK<br/>
+    M. Desinde
+  </div>
+</header>
+
+
+<!-- MAIN -->
+<main>
+  <div class="plan-wrapper" id="planWrapper">
+
+    <!-- Le plan principal -->
+    <img
+      class="plan-image"
+      src="plan.png"
+      alt="Plan du bateau"
+      draggable="false"
+    />
+
+  </div>
+</main>
+  
+<!-- FOOTER -->
+<footer>NAVIGATION PAR POINTS D'INTÉRÊT — CLIQUER SUR UN MARQUEUR POUR AFFICHER LE DÉTAIL</footer>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Détail">
+  <div class="lb-card">
+    <div class="lb-header">
+      <span class="lb-title" id="lbTitle">Détail</span>
+      <button class="lb-close" id="lbClose" aria-label="Fermer">✕</button>
+    </div>
+    <div class="lb-body">
+      <img id="lbImg" src="" alt="Détail" />
+    </div>
+  </div>
+</div>
+
+<script>
+  const lightbox = document.getElementById('lightbox');
+  const lbImg    = document.getElementById('lbImg');
+  const lbTitle  = document.getElementById('lbTitle');
+  const lbClose  = document.getElementById('lbClose');
+
+  // Ouvrir depuis un bouton hotspot
+  document.querySelectorAll('.hotspot').forEach(btn => {
+    btn.addEventListener('click', () => {
+      lbImg.src      = btn.dataset.img   || '';
+      lbTitle.textContent = btn.dataset.title || btn.dataset.label || 'Détail';
+      lightbox.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      lbClose.focus();
+    });
+  });
+
+  // Fermer
+  function closeLb() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+    lbImg.src = '';
+  }
+  lbClose.addEventListener('click', closeLb);
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLb(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb(); });
+</script>
+
+</body>
+</html>
