@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Galerie — Plans du Bateau</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:    #0a0f1e;
+      --deep:    #0d1530;
+      --panel:   #111c36;
+      --card:    #0f1828;
+      --accent:  #00d4ff;
+      --accent2: #0088cc;
+      --gold:    #f0c040;
+      --text:    #c8daf0;
+      --muted:   #4a6080;
+      --radius:  6px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--navy);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 28px;
+      background: var(--deep);
+      border-bottom: 1px solid rgba(0,212,255,.18);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      flex-shrink: 0;
+    }
+    .header-icon {
+      width: 36px; height: 36px;
+      fill: none; stroke: var(--accent); stroke-width: 1.5;
+    }
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    header h1 span { color: var(--accent); }
+    .header-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, rgba(0,212,255,.4), transparent);
+    }
+    .header-meta {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem;
+      color: var(--muted);
+      text-align: right;
+      line-height: 1.6;
+    }
+    .header-nav {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      background: rgba(0,212,255,.08);
+      border: 1px solid rgba(0,212,255,.3);
+      color: var(--accent);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .85rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .18s, border-color .18s;
+    }
+    .nav-btn:hover { background: rgba(0,212,255,.18); border-color: rgba(0,212,255,.6); }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 10px 28px;
+      background: rgba(0,0,0,.2);
+      border-bottom: 1px solid rgba(0,212,255,.08);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .75rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .stats-bar span { color: var(--accent); font-weight: 700; }
+
+    /* ── MAIN ── */
+    main { flex: 1; padding: 24px 20px 48px; }
+
+    /* ── GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 1200px) { .grid { grid-template-columns: repeat(6, 1fr); } }
+    @media (max-width: 900px)  { .grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 560px)  { .grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 380px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(0,212,255,.1);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .2s, transform .18s, box-shadow .2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .card:hover {
+      border-color: rgba(0,212,255,.5);
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 8px 24px rgba(0,0,0,.45), 0 0 12px rgba(0,212,255,.18);
+      z-index: 1;
+    }
+    .card:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .card-thumb {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      display: block;
+      background: var(--panel);
+      /* broken image fallback */
+      font-size: 0;
+    }
+    /* Show fallback icon when image missing */
+    .card-thumb::after {
+      content: '';
+      display: block;
+    }
+
+    .card-label {
+      padding: 5px 6px 6px;
+      font-size: clamp(.58rem, 1.1vw, .72rem);
+      font-weight: 600;
+      letter-spacing: .04em;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border-top: 1px solid rgba(0,212,255,.07);
+    }
+    .card:hover .card-label { color: var(--accent); }
+
+    .card-num {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: clamp(.55rem, .9vw, .65rem);
+      color: rgba(0,212,255,.4);
+      display: block;
+      text-align: center;
+      margin-bottom: 1px;
+    }
+
+    /* ── LIGHTBOX ── */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(5,10,25,.92);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+    }
+    #lightbox.open { display: flex; }
+
+    .lb-card {
+      position: relative;
+      max-width: min(94vw, 1100px);
+      max-height: 92dvh;
+      background: var(--panel);
+      border: 1px solid rgba(0,212,255,.28);
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(0,0,0,.7), 0 0 0 1px rgba(0,212,255,.06);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: card-in .22s cubic-bezier(.22,.8,.44,1) both;
+    }
+    @keyframes card-in {
+      from { transform: scale(.94) translateY(16px); opacity: 0; }
+      to   { transform: scale(1) translateY(0);      opacity: 1; }
+    }
+
+    .lb-header {
+      display: flex;
+      align-items: center;
+      padding: 11px 16px;
+      background: rgba(0,0,0,.3);
+      border-bottom: 1px solid rgba(0,212,255,.12);
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .lb-num {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .75rem;
+      color: var(--muted);
+      min-width: 28px;
+    }
+    .lb-title {
+      flex: 1;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .lb-nav {
+      display: flex; gap: 6px;
+    }
+    .lb-nav-btn {
+      width: 28px; height: 28px;
+      border-radius: 4px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--text);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem;
+      transition: background .15s;
+    }
+    .lb-nav-btn:hover { background: rgba(0,212,255,.2); border-color: rgba(0,212,255,.4); color: var(--accent); }
+    .lb-close {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.15);
+      color: var(--text);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem;
+      transition: background .15s, color .15s;
+      margin-left: 4px;
+    }
+    .lb-close:hover { background: rgba(255,80,80,.25); color: #fff; border-color: rgba(255,80,80,.5); }
+
+    .lb-body {
+      overflow: auto;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(0,0,0,.15);
+    }
+    .lb-body img {
+      max-width: 100%;
+      max-height: 75dvh;
+      object-fit: contain;
+      border-radius: 4px;
+      display: block;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 12px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .68rem;
+      color: var(--muted);
+      border-top: 1px solid rgba(0,212,255,.08);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <h1>Correction <span>Porte-Conteneur</span></h1>
+  <div class="header-line"></div>
+  <nav class="header-nav">
+    <a href="index.html" class="nav-btn">
+      ← Plan du bateau
+    </a>
+  </nav>
+  <div class="header-meta">
+    78 observations<br/>
+    vue galerie
+  </div>
+</header>
+
+<!-- STATS BAR -->
+
+
+<!-- GRID -->
+<main>
+  <div class="grid" id="gallery">
+
+    <div class="card" tabindex="0" data-idx="0">
+      <img class="card-thumb" src="detail_1.jpg" alt="FWG" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#01</span>FWG</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="1">
+      <img class="card-thumb" src="detail_2.jpg" alt="Sural" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#02</span>Sural</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="2">
+      <img class="card-thumb" src="detail_3.jpg" alt="Manche à incendie" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#03</span>Manche à incendie</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="3">
+      <img class="card-thumb" src="detail_4.jpg" alt="Manche à incendie" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#04</span>Manche à incendie</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="4">
+      <img class="card-thumb" src="detail_5.jpg" alt="Pont" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#05</span>Pont</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="5">
+      <img class="card-thumb" src="detail_6.jpg" alt="Escalier machine" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#06</span>Escalier machine</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="6">
+      <img class="card-thumb" src="detail_7.jpg" alt="Incendie air eau" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#07</span>Incendie air eau</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="7">
+      <img class="card-thumb" src="detail_8.jpg" alt="Manche à incendie" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#08</span>Manche à incendie</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="8">
+      <img class="card-thumb" src="detail_9.jpg" alt="Boites de dérivation" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#09</span>Boites de dérivation</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="9">
+      <img class="card-thumb" src="detail_10.jpg" alt="SOPEP" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#10</span>SOPEP</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="10">
+      <img class="card-thumb" src="detail_11.jpg" alt="Pot qui traine" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#11</span>Pot qui traine</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="11">
+      <img class="card-thumb" src="detail_12.jpg" alt="Chargement" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#12</span>Chargement</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="12">
+      <img class="card-thumb" src="detail_13.jpg" alt="Séparateur" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#13</span>Séparateur</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="13">
+      <img class="card-thumb" src="detail_14.jpg" alt="Coupée" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#14</span>Coupée</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="14">
+      <img class="card-thumb" src="detail_15.jpg" alt="Fixe extinguish homemade" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#15</span>Fixe extinguish</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="15">
+      <img class="card-thumb" src="detail_16.jpg" alt="Flooding" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#16</span>Flooding</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="16">
+      <img class="card-thumb" src="detail_17.jpg" alt="Fire valve" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#17</span>Fire valve</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="17">
+      <img class="card-thumb" src="detail_18.jpg" alt="Fire valve" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#18</span>Fire valve</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="18">
+      <img class="card-thumb" src="detail_19.jpg" alt="Firestation" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#19</span>Firestation</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="19">
+      <img class="card-thumb" src="detail_20.jpg" alt="Anchor" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#20</span>Anchor</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="20">
+      <img class="card-thumb" src="detail_21.jpg" alt="Cabine" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#21</span>Cabine</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="21">
+      <img class="card-thumb" src="detail_22.jpg" alt="Grue" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#22</span>Grue</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="22">
+      <img class="card-thumb" src="detail_23.jpg" alt="Chaudière" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#23</span>Chaudière</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="23">
+      <img class="card-thumb" src="detail_24.jpg" alt="DGS" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#24</span>DGS</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="24">
+      <img class="card-thumb" src="detail_25.jpg" alt="MP" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#25</span>MP</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="25">
+      <img class="card-thumb" src="detail_26.jpg" alt="Boosterstation" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#26</span>Boosterstation</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="26">
+      <img class="card-thumb" src="detail_27.jpg" alt="Pilot ladder" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#27</span>Pilot ladder</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="27">
+      <img class="card-thumb" src="detail_28.jpg" alt="Flèche" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#28</span>Flèche</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="28">
+      <img class="card-thumb" src="detail_29.jpg" alt="FWG" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#29</span>FWG</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="29">
+      <img class="card-thumb" src="detail_30.jpg" alt="Rouille" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#30</span>Rouille</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="30">
+      <img class="card-thumb" src="detail_31.jpg" alt="Reefer plugs" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#31</span>Reefer plugs</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="31">
+      <img class="card-thumb" src="detail_32.jpg" alt="Mer" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#32</span>Mer</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="32">
+      <img class="card-thumb" src="detail_33.jpg" alt="DG" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#33</span>DG</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="33">
+      <img class="card-thumb" src="detail_34.jpg" alt="Boite très étanche" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#34</span>Boite très étanche</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="34">
+      <img class="card-thumb" src="detail_35.jpg" alt="CPI" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#35</span>CPI</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="35">
+      <img class="card-thumb" src="detail_36.jpg" alt="Atelier" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#36</span>Atelier</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="36">
+      <img class="card-thumb" src="detail_37.jpg" alt="Port" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#37</span>Port</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="37">
+      <img class="card-thumb" src="detail_38.jpg" alt="ZEF Recreation Area" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#38</span>ZEF Rec. Area</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="38">
+      <img class="card-thumb" src="detail_39.jpg" alt="Tirant" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#39</span>Tirant</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="39">
+      <img class="card-thumb" src="detail_40.jpg" alt="Manhole" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#40</span>Manhole</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="40">
+      <img class="card-thumb" src="detail_41.jpg" alt="Maille sèche" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#41</span>Maille sèche</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="41">
+      <img class="card-thumb" src="detail_42.jpg" alt="Affichage" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#42</span>Affichage</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="42">
+      <img class="card-thumb" src="detail_43.jpg" alt="Radeau" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#43</span>Radeau</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="43">
+      <img class="card-thumb" src="detail_44.jpg" alt="Pompe" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#44</span>Pompe</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="44">
+      <img class="card-thumb" src="detail_45.jpg" alt="Peinture" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#45</span>Peinture</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="45">
+      <img class="card-thumb" src="detail_46.jpg" alt="Cale" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#46</span>Cale</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="46">
+      <img class="card-thumb" src="detail_47.jpg" alt="Overflow" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#47</span>Overflow</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="47">
+      <img class="card-thumb" src="detail_48.jpg" alt="Flooding" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#48</span>Flooding</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="48">
+      <img class="card-thumb" src="detail_49.jpg" alt="Coconut" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#49</span>Coconut</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="49">
+      <img class="card-thumb" src="detail_50.jpg" alt="SART/PIRB" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#50</span>SART/PIRB</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="50">
+      <img class="card-thumb" src="detail_51.jpg" alt="Abandon !!" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#51</span>Abandon !!</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="51">
+      <img class="card-thumb" src="detail_52.jpg" alt="Sciure" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#52</span>Sciure</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="52">
+      <img class="card-thumb" src="detail_53.jpg" alt="Twistlock" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#53</span>Twistlock</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="53">
+      <img class="card-thumb" src="detail_54.jpg" alt="Flooding" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#54</span>Flooding</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="54">
+      <img class="card-thumb" src="detail_55.jpg" alt="HFO" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#55</span>HFO</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="55">
+      <img class="card-thumb" src="detail_56.jpg" alt="Cafards" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#56</span>Cafards</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="56">
+      <img class="card-thumb" src="detail_57.jpg" alt="ECR" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#57</span>ECR</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="57">
+      <img class="card-thumb" src="detail_58.jpg" alt="Traitement caisse à *" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#58</span>Traitement caisse</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="58">
+      <img class="card-thumb" src="detail_59.jpg" alt="Canal latéral" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#59</span>Canal latéral</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="59">
+      <img class="card-thumb" src="detail_60.jpg" alt="Commande locale MP" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#60</span>Commande locale MP</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="60">
+      <img class="card-thumb" src="detail_61.jpg" alt="Bâche" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#61</span>Bâche</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="61">
+      <img class="card-thumb" src="detail_62.jpg" alt="Échangeur" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#62</span>Échangeur</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="62">
+      <img class="card-thumb" src="detail_63.jpg" alt="Turbo" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#63</span>Turbo</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="63">
+      <img class="card-thumb" src="detail_64.jpg" alt="Cacaroom" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#64</span>Cacaroom</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="64">
+      <img class="card-thumb" src="detail_65.jpg" alt="Steering gear" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#65</span>Steering gear</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="65">
+      <img class="card-thumb" src="detail_66.jpg" alt="CO2" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#66</span>CO2</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="66">
+      <img class="card-thumb" src="detail_67.jpg" alt="Aileron" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#67</span>Aileron</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="67">
+      <img class="card-thumb" src="detail_68.jpg" alt="Bridge" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#68</span>Bridge</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="68">
+      <img class="card-thumb" src="detail_69.jpg" alt="Aspiration de secours" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#69</span>Aspiration secours</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="69">
+      <img class="card-thumb" src="detail_70.jpg" alt="Système nettoyage lampes UV" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#70</span>Nettoyage UV</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="70">
+      <img class="card-thumb" src="detail_71.jpg" alt="Lampes UV" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#71</span>Lampes UV</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="71">
+      <img class="card-thumb" src="detail_72.jpg" alt="Traverse" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#72</span>Traverse</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="72">
+      <img class="card-thumb" src="detail_73.jpg" alt="ISPS" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#73</span>ISPS</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="73">
+      <img class="card-thumb" src="detail_74.jpg" alt="DJ" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#74</span>DJ</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="74">
+      <img class="card-thumb" src="detail_75.jpg" alt="Sprinkler" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#75</span>Sprinkler</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="75">
+      <img class="card-thumb" src="detail_76.jpg" alt="Feu" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#76</span>Feu</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="76">
+      <img class="card-thumb" src="detail_77.jpg" alt="GMDSS" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#77</span>GMDSS</div>
+    </div>
+
+    <div class="card" tabindex="0" data-idx="77">
+      <img class="card-thumb" src="detail_78.jpg" alt="Fuite huile DG" loading="lazy"/>
+      <div class="card-label"><span class="card-num">#78</span>Fuite huile DG</div>
+    </div>
+
+  </div>
+</main>
+
+<footer>GALERIE — 78 OBSERVATIONS — PLANS DU BATEAU</footer>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Photo agrandie">
+  <div class="lb-card">
+    <div class="lb-header">
+      <span class="lb-num" id="lbNum">#01</span>
+      <span class="lb-title" id="lbTitle">Titre</span>
+      <div class="lb-nav">
+        <button class="lb-nav-btn" id="lbPrev" aria-label="Précédent">‹</button>
+        <button class="lb-nav-btn" id="lbNext" aria-label="Suivant">›</button>
+      </div>
+      <button class="lb-close" id="lbClose" aria-label="Fermer">✕</button>
+    </div>
+    <div class="lb-body">
+      <img id="lbImg" src="" alt="" />
+    </div>
+  </div>
+</div>
+
+<script>
+  const photos = [
+    { src: 'detail_1.jpg',  title: 'FWG' },
+    { src: 'detail_2.jpg',  title: 'Sural' },
+    { src: 'detail_3.jpg',  title: 'Manche à incendie' },
+    { src: 'detail_4.jpg',  title: 'Manche à incendie' },
+    { src: 'detail_5.jpg',  title: 'Pont' },
+    { src: 'detail_6.jpg',  title: 'Escalier machine' },
+    { src: 'detail_7.jpg',  title: 'Incendie air eau' },
+    { src: 'detail_8.jpg',  title: 'Manche à incendie' },
+    { src: 'detail_9.jpg',  title: 'Boites de dérivation' },
+    { src: 'detail_10.jpg', title: 'SOPEP' },
+    { src: 'detail_11.jpg', title: 'Pot qui traine' },
+    { src: 'detail_12.jpg', title: 'Chargement' },
+    { src: 'detail_13.jpg', title: 'Séparateur' },
+    { src: 'detail_14.jpg', title: 'Coupée' },
+    { src: 'detail_15.jpg', title: 'Fixe extinguish homemade' },
+    { src: 'detail_16.jpg', title: 'Flooding' },
+    { src: 'detail_17.jpg', title: 'Fire valve' },
+    { src: 'detail_18.jpg', title: 'Fire valve' },
+    { src: 'detail_19.jpg', title: 'Firestation' },
+    { src: 'detail_20.jpg', title: 'Anchor' },
+    { src: 'detail_21.jpg', title: 'Cabine' },
+    { src: 'detail_22.jpg', title: 'Grue' },
+    { src: 'detail_23.jpg', title: 'Chaudière' },
+    { src: 'detail_24.jpg', title: 'DGS' },
+    { src: 'detail_25.jpg', title: 'MP' },
+    { src: 'detail_26.jpg', title: 'Boosterstation' },
+    { src: 'detail_27.jpg', title: 'Pilot ladder' },
+    { src: 'detail_28.jpg', title: 'Flèche' },
+    { src: 'detail_29.jpg', title: 'FWG' },
+    { src: 'detail_30.jpg', title: 'Rouille' },
+    { src: 'detail_31.jpg', title: 'Reefer plugs' },
+    { src: 'detail_32.jpg', title: 'Mer' },
+    { src: 'detail_33.jpg', title: 'DG' },
+    { src: 'detail_34.jpg', title: 'Boite très étanche' },
+    { src: 'detail_35.jpg', title: 'CPI' },
+    { src: 'detail_36.jpg', title: 'Atelier' },
+    { src: 'detail_37.jpg', title: 'Port' },
+    { src: 'detail_38.jpg', title: 'ZEF Recreation Area' },
+    { src: 'detail_39.jpg', title: 'Tirant' },
+    { src: 'detail_40.jpg', title: 'Manhole' },
+    { src: 'detail_41.jpg', title: 'Maille sèche' },
+    { src: 'detail_42.jpg', title: 'Affichage' },
+    { src: 'detail_43.jpg', title: 'Radeau' },
+    { src: 'detail_44.jpg', title: 'Pompe' },
+    { src: 'detail_45.jpg', title: 'Peinture' },
+    { src: 'detail_46.jpg', title: 'Cale' },
+    { src: 'detail_47.jpg', title: 'Overflow' },
+    { src: 'detail_48.jpg', title: 'Flooding' },
+    { src: 'detail_49.jpg', title: 'Coconut' },
+    { src: 'detail_50.jpg', title: 'SART/PIRB' },
+    { src: 'detail_51.jpg', title: 'Abandon !!' },
+    { src: 'detail_52.jpg', title: 'Sciure' },
+    { src: 'detail_53.jpg', title: 'Twistlock' },
+    { src: 'detail_54.jpg', title: 'Flooding' },
+    { src: 'detail_55.jpg', title: 'HFO' },
+    { src: 'detail_56.jpg', title: 'Cafards' },
+    { src: 'detail_57.jpg', title: 'ECR' },
+    { src: 'detail_58.jpg', title: 'Traitement caisse à *' },
+    { src: 'detail_59.jpg', title: 'Canal latéral' },
+    { src: 'detail_60.jpg', title: 'Commande locale MP' },
+    { src: 'detail_61.jpg', title: 'Bâche' },
+    { src: 'detail_62.jpg', title: 'Échangeur' },
+    { src: 'detail_63.jpg', title: 'Turbo' },
+    { src: 'detail_64.jpg', title: 'Cacaroom' },
+    { src: 'detail_65.jpg', title: 'Steering gear' },
+    { src: 'detail_66.jpg', title: 'CO2' },
+    { src: 'detail_67.jpg', title: 'Aileron' },
+    { src: 'detail_68.jpg', title: 'Bridge' },
+    { src: 'detail_69.jpg', title: 'Aspiration de secours' },
+    { src: 'detail_70.jpg', title: 'Système nettoyage lampes UV' },
+    { src: 'detail_71.jpg', title: 'Lampes UV' },
+    { src: 'detail_72.jpg', title: 'Traverse' },
+    { src: 'detail_73.jpg', title: 'ISPS' },
+    { src: 'detail_74.jpg', title: 'DJ' },
+    { src: 'detail_75.jpg', title: 'Sprinkler' },
+    { src: 'detail_76.jpg', title: 'Feu' },
+    { src: 'detail_77.jpg', title: 'GMDSS' },
+    { src: 'detail_78.jpg', title: 'Fuite huile DG' },
+  ];
+
+  const lightbox = document.getElementById('lightbox');
+  const lbImg    = document.getElementById('lbImg');
+  const lbTitle  = document.getElementById('lbTitle');
+  const lbNum    = document.getElementById('lbNum');
+  const lbClose  = document.getElementById('lbClose');
+  const lbPrev   = document.getElementById('lbPrev');
+  const lbNext   = document.getElementById('lbNext');
+
+  let current = 0;
+
+  function openLb(idx) {
+    current = idx;
+    const p = photos[current];
+    lbImg.src = p.src;
+    lbImg.alt = p.title;
+    lbTitle.textContent = p.title;
+    lbNum.textContent = '#' + String(current + 1).padStart(2, '0');
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    lbClose.focus();
+  }
+
+  function closeLb() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+    lbImg.src = '';
+  }
+
+  function navigate(dir) {
+    current = (current + dir + photos.length) % photos.length;
+    openLb(current);
+  }
+
+  // Open from grid
+  document.querySelectorAll('.card').forEach(card => {
+    const open = () => openLb(+card.dataset.idx);
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  });
+
+  lbClose.addEventListener('click', closeLb);
+  lbPrev.addEventListener('click', () => navigate(-1));
+  lbNext.addEventListener('click', () => navigate(1));
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLb(); });
+
+  document.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape')      closeLb();
+    if (e.key === 'ArrowLeft')   navigate(-1);
+    if (e.key === 'ArrowRight')  navigate(1);
+  });
+
+  // Swipe support mobile
+  let touchStartX = 0;
+  lightbox.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  lightbox.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+  });
+</script>
+
+</body>
+</html>
